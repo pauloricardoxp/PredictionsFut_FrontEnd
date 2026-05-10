@@ -1,13 +1,15 @@
-import { usePredictions } from '../hooks/usePredictions'
-import PredictionCard from '../components/PredictionCard'
+import { useState } from "react";
+import { usePredictions } from "../hooks/usePredictions";
+import PredictionCard from "../components/PredictionCard";
 
 const PredictionsPage = () => {
-  const { predictions, loading, error, reload } = usePredictions()
+  const { predictions, loading, error, reload } = usePredictions();
+  const [filter, setFilter] = useState<"ALL" | "GREEN" | "RED">("ALL");
 
-  const green = predictions.filter((p) => p.result === 'GREEN').length
-  const red = predictions.filter((p) => p.result === 'RED').length
-  const total = green + red
-  const successRate = total > 0 ? Math.round((green / total) * 100) : 0
+  const green = predictions.filter((p) => p.result === "GREEN").length;
+  const red = predictions.filter((p) => p.result === "RED").length;
+  const total = green + red;
+  const successRate = total > 0 ? Math.round((green / total) * 100) : 0;
 
   return (
     <main className="px-margin pt-md pb-32 space-y-md max-w-2xl mx-auto">
@@ -31,7 +33,9 @@ const PredictionsPage = () => {
             Total
           </span>
           <div className="flex items-center gap-xs">
-            <span className="font-stat-lg text-stat-lg">{predictions.length}</span>
+            <span className="font-stat-lg text-stat-lg">
+              {predictions.length}
+            </span>
             <span className="w-2 h-2 rounded-full bg-primary-container animate-pulse mb-1" />
           </div>
         </div>
@@ -47,6 +51,42 @@ const PredictionsPage = () => {
         </span>
       </h2>
 
+      {/* Filter Buttons */}
+      <div className="flex gap-sm justify-start">
+        <button
+          onClick={() => setFilter("ALL")}
+          className={`font-label-mono text-label-mono px-md py-xs rounded-full font-bold transition-all ${
+            filter === "ALL"
+              ? "bg-on-surface-variant text-background"
+              : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
+          }`}
+        >
+          Todas
+        </button>
+        <button
+          onClick={() => setFilter("GREEN")}
+          className={`font-label-mono text-label-mono px-md py-xs rounded-full font-bold transition-all flex items-center gap-xs ${
+            filter === "GREEN"
+              ? "bg-primary-container text-on-primary-container"
+              : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
+          }`}
+        >
+          <span className="w-2 h-2 rounded-full bg-current" />
+          Green ({predictions.filter((p) => p.result === "GREEN").length})
+        </button>
+        <button
+          onClick={() => setFilter("RED")}
+          className={`font-label-mono text-label-mono px-md py-xs rounded-full font-bold transition-all flex items-center gap-xs ${
+            filter === "RED"
+              ? "bg-error text-on-error-container"
+              : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
+          }`}
+        >
+          <span className="w-2 h-2 rounded-full bg-current" />
+          Red ({predictions.filter((p) => p.result === "RED").length})
+        </button>
+      </div>
+
       {loading && (
         <div className="flex flex-col items-center justify-center py-xl gap-md">
           <span className="material-symbols-outlined text-primary-container animate-spin text-4xl">
@@ -60,7 +100,9 @@ const PredictionsPage = () => {
 
       {error && !loading && (
         <div className="glass-card rounded-xl p-md text-center space-y-sm">
-          <span className="material-symbols-outlined text-error text-4xl">error_outline</span>
+          <span className="material-symbols-outlined text-error text-4xl">
+            error_outline
+          </span>
           <p className="font-body-base text-error">{error}</p>
           <button
             onClick={reload}
@@ -84,13 +126,15 @@ const PredictionsPage = () => {
 
       {!loading && !error && (
         <section className="space-y-sm">
-          {predictions.map((p) => (
-            <PredictionCard key={p.id} prediction={p} />
-          ))}
+          {predictions
+            .filter((p) => (filter === "ALL" ? true : p.result === filter))
+            .map((p) => (
+              <PredictionCard key={p.id} prediction={p} />
+            ))}
         </section>
       )}
     </main>
-  )
-}
+  );
+};
 
-export default PredictionsPage
+export default PredictionsPage;
