@@ -1,15 +1,64 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { usePredictions } from "../hooks/usePredictions";
 import PredictionCard from "../components/PredictionCard";
 
 const PredictionsPage = () => {
   const { predictions, loading, error, reload } = usePredictions();
   const [filter, setFilter] = useState<"ALL" | "GREEN" | "RED">("ALL");
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   const green = predictions.filter((p) => p.result === "GREEN").length;
   const red = predictions.filter((p) => p.result === "RED").length;
   const total = green + red;
   const successRate = total > 0 ? Math.round((green / total) * 100) : 0;
+
+  // Extrair datas únicas dos palpites
+  const uniqueDates = useMemo(() => {
+    const dates = predictions
+      .map((p) => {
+        const dateStr = p.createdAt.split("T")[0];
+        return dateStr;
+      })
+      .filter((v, i, a) => a.indexOf(v) === i)
+      .sort()
+      .reverse();
+    return dates;
+  }, [predictions]);
+
+  // Formatar data para exibição
+  const formatDate = (dateStr: string): string => {
+    // Parse manual para evitar problema de timezone
+    const [year, month, day] = dateStr.split("-").map(Number);
+    const date = new Date(year, month - 1, day);
+
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const isToday =
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear();
+
+    const isYesterday =
+      date.getDate() === yesterday.getDate() &&
+      date.getMonth() === yesterday.getMonth() &&
+      date.getFullYear() === yesterday.getFullYear();
+
+    if (isToday) return "Hoje";
+    if (isYesterday) return "Ontem";
+
+    return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
+  };
+
+  // Filtrar palpites pela data selecionada
+  const filteredByResult = predictions.filter((p) =>
+    filter === "ALL" ? true : p.result === filter,
+  );
+
+  const filteredByDate = selectedDate
+    ? filteredByResult.filter((p) => p.createdAt.split("T")[0] === selectedDate)
+    : filteredByResult;
 
   return (
     <main className="px-margin pt-md pb-32 space-y-md max-w-2xl mx-auto">
@@ -51,11 +100,11 @@ const PredictionsPage = () => {
         </span>
       </h2>
 
-      {/* Filter Buttons */}
-      <div className="flex gap-sm justify-start">
+      {/* Filter Buttons - Result */}
+      <div className="flex gap-sm justify-start overflow-x-auto pb-xs">
         <button
           onClick={() => setFilter("ALL")}
-          className={`font-label-mono text-label-mono px-md py-xs rounded-full font-bold transition-all ${
+          className={`font-label-mono text-label-mono px-md py-xs rounded-full font-bold transition-all whitespace-nowrap ${
             filter === "ALL"
               ? "bg-on-surface-variant text-background"
               : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
@@ -65,7 +114,7 @@ const PredictionsPage = () => {
         </button>
         <button
           onClick={() => setFilter("GREEN")}
-          className={`font-label-mono text-label-mono px-md py-xs rounded-full font-bold transition-all flex items-center gap-xs ${
+          className={`font-label-mono text-label-mono px-md py-xs rounded-full font-bold transition-all flex items-center gap-xs whitespace-nowrap ${
             filter === "GREEN"
               ? "bg-primary-container text-on-primary-container"
               : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
@@ -76,7 +125,7 @@ const PredictionsPage = () => {
         </button>
         <button
           onClick={() => setFilter("RED")}
-          className={`font-label-mono text-label-mono px-md py-xs rounded-full font-bold transition-all flex items-center gap-xs ${
+          className={`font-label-mono text-label-mono px-md py-xs rounded-full font-bold transition-all flex items-center gap-xs whitespace-nowrap ${
             filter === "RED"
               ? "bg-error text-on-error-container"
               : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
@@ -86,6 +135,40 @@ const PredictionsPage = () => {
           Red ({predictions.filter((p) => p.result === "RED").length})
         </button>
       </div>
+
+      {/* Filter Buttons - Date */}
+      {uniqueDates.length > 0 && (
+        <div>
+          <span className="font-label-mono text-label-mono text-on-surface-variant uppercase mb-xs block text-[10px]">
+            Por Data
+          </span>
+          <div className="flex gap-sm justify-start overflow-x-auto pb-xs">
+            <button
+              onClick={() => setSelectedDate(null)}
+              className={`font-label-mono text-label-mono px-md py-xs rounded-full font-bold transition-all whitespace-nowrap ${
+                selectedDate === null
+                  ? "bg-on-surface-variant text-background"
+                  : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
+              }`}
+            >
+              Todas
+            </button>
+            {uniqueDates.map((date) => (
+              <button
+                key={date}
+                onClick={() => setSelectedDate(date)}
+                className={`font-label-mono text-label-mono px-md py-xs rounded-full font-bold transition-all whitespace-nowrap ${
+                  selectedDate === date
+                    ? "bg-primary-container text-on-primary-container"
+                    : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
+                }`}
+              >
+                {formatDate(date)}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {loading && (
         <div className="flex flex-col items-center justify-center py-xl gap-md">
@@ -126,11 +209,9 @@ const PredictionsPage = () => {
 
       {!loading && !error && (
         <section className="space-y-sm">
-          {predictions
-            .filter((p) => (filter === "ALL" ? true : p.result === filter))
-            .map((p) => (
-              <PredictionCard key={p.id} prediction={p} />
-            ))}
+          {filteredByDate.map((p) => (
+            <PredictionCard key={p.id} prediction={p} />
+          ))}
         </section>
       )}
     </main>
