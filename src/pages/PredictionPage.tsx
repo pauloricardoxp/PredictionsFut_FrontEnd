@@ -12,7 +12,6 @@ const PredictionsPage = () => {
   const total = green + red;
   const successRate = total > 0 ? Math.round((green / total) * 100) : 0;
 
-  // Extrair datas únicas dos palpites
   const uniqueDates = useMemo(() => {
     const dates = predictions
       .map((p) => {
@@ -25,9 +24,8 @@ const PredictionsPage = () => {
     return dates;
   }, [predictions]);
 
-  // Formatar data para exibição
+  
   const formatDate = (dateStr: string): string => {
-    // Parse manual para evitar problema de timezone
     const [year, month, day] = dateStr.split("-").map(Number);
     const date = new Date(year, month - 1, day);
 
@@ -51,7 +49,6 @@ const PredictionsPage = () => {
     return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
   };
 
-  // Filtrar palpites pela data selecionada
   const filteredByResult = predictions.filter((p) =>
     filter === "ALL" ? true : p.result === filter,
   );
@@ -100,7 +97,7 @@ const PredictionsPage = () => {
         </span>
       </h2>
 
-      {/* Filter Buttons - Result */}
+      
       <div className="flex gap-sm justify-start overflow-x-auto pb-xs">
         <button
           onClick={() => setFilter("ALL")}
@@ -136,7 +133,7 @@ const PredictionsPage = () => {
         </button>
       </div>
 
-      {/* Filter Buttons - Date */}
+      
       {uniqueDates.length > 0 && (
         <div>
           <span className="font-label-mono text-label-mono text-on-surface-variant uppercase mb-xs block text-[10px]">

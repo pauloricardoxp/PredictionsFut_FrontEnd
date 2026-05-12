@@ -1,12 +1,12 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import MatchesPage from './pages/MatchesPage'
-
-import { useGames } from './hooks/useGames'
-import PredictionsPage from './pages/PredictionPage'
-import BottomNav from './components/Bottomnav'
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import MatchesPage from "./pages/MatchesPage";
+import PredictionsPage from "./pages/PredictionPage";
+import PredictionIaPage from "./pages/PredictionIaPage";
+import { useGames } from "./hooks/useGames";
+import BottomNav from "./components/Bottomnav";
 
 const Header = () => {
-  const { refresh } = useGames()
+  const { refresh } = useGames();
 
   return (
     <header className="bg-surface/70 backdrop-blur-md border-b border-white/10 shadow-[0_0_15px_rgba(57,255,20,0.1)] flex items-center justify-between px-margin h-16 w-full z-50 sticky top-0">
@@ -29,8 +29,8 @@ const Header = () => {
         <span className="material-symbols-outlined">refresh</span>
       </button>
     </header>
-  )
-}
+  );
+};
 
 const App = () => (
   <BrowserRouter>
@@ -39,10 +39,11 @@ const App = () => (
       <Routes>
         <Route path="/" element={<MatchesPage />} />
         <Route path="/predictions" element={<PredictionsPage />} />
+        <Route path="/prediction-ia" element={<PredictionIaPage />} />
       </Routes>
       <BottomNav />
     </div>
   </BrowserRouter>
-)
+);
 
-export default App
+export default App;
